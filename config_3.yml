@@ -1,0 +1,18 @@
+params:
+    L: 0.5
+    L_a: 8
+    num_staff: 2
+    cus_per_staff: 3
+    staff_velocity: 35
+    drone_velocity: 50
+
+data_path: data/d1/*.txt
+
+result_folder: result
+
+solver:
+    solver: SCIP #CBC
+    num_worker: -1
+    time_limit: 18000000
+
+tech2color: {-1: "blue", 0: "red", 1: "green", 2: "silver", 3: "yellow"}
