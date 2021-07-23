@@ -1,12 +1,12 @@
 params:
-    L: 0.5
-    L_a: 8
+    L: 30
+    L_a: 180
+    staff_velocity: 0.58
+    drone_velocity: 0.83
     num_staff: 2
     cus_per_staff: 3
-    staff_velocity: 35
-    drone_velocity: 50
 
-data_path: data/d1/*.txt
+data_path: data/d1/6*.txt
 
 result_folder: result
 
