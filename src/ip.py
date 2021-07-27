@@ -465,7 +465,11 @@ def main(config, inp):
         # plt.show()
         return solver.Objective().Value(), solver.WallTime()
     else:
-        result = {"status": result_status}
         make_dirs_if_not_present(config.result_folder)
+        result = {"status": "INFEASIBLE" if result_status == 2 else result_status}
+        result.update(dict(config.params))
+
+        result.update(dict(config.solver))
+
         with open(os.path.join(config.result_folder, 'result_' + inp['data_set'] + '.json'), 'w') as json_file:
             json.dump(result, json_file, indent=2)
