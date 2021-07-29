@@ -4,15 +4,15 @@ params:
     staff_velocity: 0.58
     drone_velocity: 0.83
     num_staff: 2
-    cus_per_staff: 7
+    cus_per_staff: 6
 
-data_path: data/d1/6*.txt
+data_path: data/d1/6.5.3.txt
 
 result_folder: result
 
 solver:
-    solver: SCIP #CBC
+    solver: CBC #SCIP
     num_worker: -1
-    time_limit: 18000000
+    time_limit: 60000
 
 tech2color: {-1: "blue", 0: "red", 1: "green", 2: "silver", 3: "yellow"}

@@ -317,17 +317,18 @@ def main(config, inp):
             solver.Add(
                 D[i, k] >= B[k] - T[i] - M * (
                         1 - solver.Sum(x[i, j, k] for j in N2) + solver.Sum(
-                    g[i, j, k, r] for j in cC for r in range(num_drone_trip))))
+                            g[i, j, k, r] for j in cC for r in range(num_drone_trip))))
 
     for i in cC:
         for k in range(num_staff):
             solver.Add(
                 D[i, k] <= B[k] - T[i] + M * (
                         1 - solver.Sum(x[i, j, k] for j in N2) + solver.Sum(
-                    g[i, j, k, r] for j in cC for r in range(num_drone_trip))))
+                            g[i, j, k, r] for j in cC for r in range(num_drone_trip))))
 
     for k in range(num_staff):
-        solver.Add(B_a[k] == B[k] - M * (1 - u[k]))
+        solver.Add(B_a[k] >= B[k] - M * (1 - u[k]))
+        solver.Add(B_a[k] <= B[k] + M * (1 - u[k]))
 
     for k in range(num_staff):
         solver.Add(B_a[k] <= L_a)
@@ -450,7 +451,8 @@ def main(config, inp):
 
         pos = nx.spectral_layout(graph, scale=10)
         plt.subplot(121)
-        nx.draw_networkx(graph, pos, node_color=color_set.values(), font_size=16, font_color="whitesmoke", node_size=500,
+        nx.draw_networkx(graph, pos, node_color=color_set.values(), font_size=16, font_color="whitesmoke",
+                         node_size=500,
                          alpha=0.9)
         nx.draw_networkx_edge_labels(graph, pos, edge_labels=nx.get_edge_attributes(graph, 'label'), font_size=16)
         drone_pos = nx.spiral_layout(drone_graph, scale=10)
