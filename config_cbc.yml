@@ -11,7 +11,7 @@ data_path: data/d1/6.*.txt
 result_folder: result
 
 solver:
-    solver: SCIP #CBC
+    solver: CBC #SCIP
     num_worker: -1
     time_limit: 18000000
 
