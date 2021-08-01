@@ -18,8 +18,9 @@ def read_result():
             result[solver].append(
                 {"data_set": os.path.splitext(os.path.basename(path))[0].split("_")[1], "L": data["L"],
                  "L_a": data["L_a"], "staff_velocity": data["staff_velocity"],
-                 "drone_velocity": data["drone_velocity"], "cus_per_staff": data["cus_per_staff"],
-                 "status": data["status"], "optimal": data["Optimal"]})
+                 "drone_velocity": data["drone_velocity"], "staff": f'{len(data["B"])}/{data["num_staff"]}',
+                 "status": data["status"], "drone_completed_time": max(data["A"].values()),
+                 "staff_completed_time": max(data["B"].values()), "optimal": data["Optimal"]})
     with open('result.json', 'w') as json_file:
         json.dump(result, json_file, indent=2)
     return result
