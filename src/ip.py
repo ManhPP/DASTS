@@ -271,6 +271,12 @@ def main(config, inp):
         solver.Add(solver.Sum(g[i, j, k, r] for r in range(num_drone_trip) for k in range(num_staff) for j in cC) <= 1)
 
     for i in cC:
+        for j in cC:
+            solver.Add(solver.Sum(t[j] >= t[i] - M * (1 - solver.Sum(g[i, j, k, r]
+                                                                     for r in range(num_drone_trip)
+                                                                     for k in range(num_staff)))))
+
+    for i in cC:
         for k in range(num_staff):
             solver.Add(solver.Sum(g[i, j, k, r] for r in range(num_drone_trip) for j in cC)
                        <= solver.Sum(x[i, j, k] for j in N2))
@@ -317,14 +323,14 @@ def main(config, inp):
             solver.Add(
                 D[i, k] >= B[k] - T[i] - M * (
                         1 - solver.Sum(x[i, j, k] for j in N2) + solver.Sum(
-                            g[i, j, k, r] for j in cC for r in range(num_drone_trip))))
+                    g[i, j, k, r] for j in cC for r in range(num_drone_trip))))
 
     for i in cC:
         for k in range(num_staff):
             solver.Add(
                 D[i, k] <= B[k] - T[i] + M * (
                         1 - solver.Sum(x[i, j, k] for j in N2) + solver.Sum(
-                            g[i, j, k, r] for j in cC for r in range(num_drone_trip))))
+                    g[i, j, k, r] for j in cC for r in range(num_drone_trip))))
 
     for k in range(num_staff):
         solver.Add(B_a[k] >= B[k] - M * (1 - u[k]))
