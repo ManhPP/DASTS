@@ -1,12 +1,11 @@
 import argparse
 import glob
+from datetime import datetime
 
-import numpy as np
+from omegaconf import OmegaConf
 
 from src.ip import main
 from src.util import *
-from omegaconf import OmegaConf
-from datetime import datetime
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DASTS')

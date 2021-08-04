@@ -53,6 +53,7 @@ def main(config, inp):
     t = {}
     t_a = {}  # apostrophe
     T = {}
+    b = {}
     A = {}
     B = {}
     C = {}
@@ -93,6 +94,7 @@ def main(config, inp):
         T[i] = solver.NumVar(0, L_a, f"T[{i}]")
 
     for r in range(num_drone_trip):
+        b[r] = solver.NumVar(0, L_a, f"b[{r}]")
         A[r] = solver.NumVar(0, L_a, f"A[{r}]")
 
     for k in range(num_staff):
@@ -156,8 +158,8 @@ def main(config, inp):
         for r in range(num_drone_trip):
             solver.Add(v[j, r] >= tau_a[0, j] + M * (y[0, j, r] - 1))
             solver.Add(v[j, r] <= tau_a[0, j] + M * (1 - y[0, j, r]))
-            solver.Add(v[num_cus + 1, r] >= v[j, r] + tau_a[j, num_cus + 1] + M * (y[j, num_cus + 1, r] - 1))
-            solver.Add(v[num_cus + 1, r] <= v[j, r] + tau_a[j, num_cus + 1] + M * (1 - y[j, num_cus + 1, r]))
+            solver.Add(v[num_cus + 1, r] == A[r] - b[r])
+            # solver.Add(v[num_cus + 1, r] <= v[j, r] + tau_a[j, num_cus + 1] + M * (1 - y[j, num_cus + 1, r]))
 
     for i in cC:
         for j in cC:
@@ -253,9 +255,19 @@ def main(config, inp):
             for r in range(num_drone_trip - 1):
                 solver.Add(t[j] >= t[i] - M * (2 - y[0, i, r] - y[0, j, r + 1]))
 
-    for j in cC:
-        for i in N1:
+    for j in cC1:
+        for i in cC1:
             solver.Add(t_a[j] >= t_a[i] + tau_a[i, j] - M * (1 - solver.Sum(y[i, j, r] for r in range(num_drone_trip))))
+
+    for j in cC1:
+        for r in range(num_drone_trip):
+            solver.Add(t_a[j] >= b[r] + tau_a[0, j] - M * (
+                    1 - y[0, j, r]))
+
+    solver.Add(b[0] == 0)
+
+    for r in range(1, num_drone_trip):
+        solver.Add(b[r] == A[r-1])
 
     solver.Add(t[0] == 0)
 
@@ -363,8 +375,8 @@ def main(config, inp):
         print("Time = ", solver.WallTime(), " milliseconds")
 
         #
-        result = {"x": {}, "y": {}, "f": {}, "g": {}, "v": {}, "C": {}, "s": {}, "D": {}, "t": {}, "t_a": {}, "T": {},
-                  "A": {}, "B": {}, "B_a": {}, "u": {}}
+        result = {"x": {}, "y": {}, "f": {}, "g": {}, "s": {}, "t": {}, "t_a": {}, "T": {}, "v": {},
+                  "b": {}, "A": {}, "B": {}, "B_a": {}, "C": {}, "D": {}, "u": {}}
         tech2color = config.tech2color
         color2tech = {v: k for (k, v) in tech2color.items()}
         graph = nx.MultiDiGraph()
@@ -431,6 +443,8 @@ def main(config, inp):
                 result["T"][f"T[{i}]"] = T[i].solution_value()
 
         for r in range(num_drone_trip):
+            result["b"][f"b[{r}]"] = b[r].solution_value()
+
             if A[r].solution_value() > 0 and not print_all:
                 result["A"][f"A[{r}]"] = A[r].solution_value()
 
