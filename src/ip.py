@@ -272,9 +272,9 @@ def main(config, inp):
 
     for i in cC:
         for j in cC:
-            solver.Add(solver.Sum(t[j] >= t[i] - M * (1 - solver.Sum(g[i, j, k, r]
-                                                                     for r in range(num_drone_trip)
-                                                                     for k in range(num_staff)))))
+            solver.Add(t[j] >= t[i] - M * (1 - solver.Sum(g[i, j, k, r]
+                                                          for r in range(num_drone_trip)
+                                                          for k in range(num_staff))))
 
     for i in cC:
         for k in range(num_staff):
