@@ -16,3 +16,7 @@ solver:
     time_limit: 18000000
 
 tech2color: {-1: "blue", 0: "red", 1: "green", 2: "silver", 3: "yellow"}
+
+#use for test
+staff_trip: [[0, 1, 5, 2, 4, 3, 6, 7]]
+drone_trip: [[1], [2], [3], [6]]
