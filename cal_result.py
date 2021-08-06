@@ -61,7 +61,7 @@ def cal(staff_trip, drone_trip, tau, tau_a, num_cus):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DASTS')
 
-    parser.add_argument('--config', type=str, default="config_s.yml",
+    parser.add_argument('--config', type=str, default="config.yml",
                         help='path of config file')
     args = parser.parse_args()
     config = OmegaConf.load(args.config)

@@ -134,8 +134,11 @@ def main(config, inp):
         for r in range(num_drone_trip):
             solver.Add(v[j, r] >= tau_a[0, j] + M * (y[0, j, r] - 1))
             solver.Add(v[j, r] <= tau_a[0, j] + M * (1 - y[0, j, r]))
-            solver.Add(v[num_cus + 1, r] >= v[j, r] + tau_a[j, num_cus + 1] + M * (y[j, num_cus + 1, r] - 1))
-            solver.Add(v[num_cus + 1, r] <= v[j, r] + tau_a[j, num_cus + 1] + M * (1 - y[j, num_cus + 1, r]))
+
+    solver.Add(v[num_cus + 1, 0] == A[0])
+    for r in range(1, num_drone_trip):
+        solver.Add(v[num_cus + 1, r] == A[r] - A[r-1])
+            # solver.Add(v[num_cus + 1, r] <= v[j, r] + tau_a[j, num_cus + 1] + M * (1 - y[j, num_cus + 1, r]))
 
     for i in cC:
         for j in cC:
@@ -231,9 +234,16 @@ def main(config, inp):
             for r in range(num_drone_trip - 1):
                 solver.Add(t[j] >= t[i] - M * (2 - y[0, i, r] - y[0, j, r + 1]))
 
-    for j in cC:
-        for i in N1:
+    for j in cC1:
+        for i in cC1:
             solver.Add(t_a[j] >= t_a[i] + tau_a[i, j] - M * (1 - solver.Sum(y[i, j, r] for r in range(num_drone_trip))))
+
+    for j in cC1:
+        solver.Add(t_a[j] >= tau_a[0, j] - M * (
+                1 - y[0, j, 0]))
+        for r in range(1, num_drone_trip):
+            solver.Add(t_a[j] >= A[r-1] + tau_a[0, j] - M * (
+                    1 - y[0, j, r]))
 
     solver.Add(t[0] == 0)
 
@@ -247,6 +257,12 @@ def main(config, inp):
 
     for i in cC:
         solver.Add(solver.Sum(g[i, j, k, r] for r in range(num_drone_trip) for k in range(num_staff) for j in cC) <= 1)
+
+    for i in cC:
+        for j in cC:
+            solver.Add(t[j] >= t[i] - M * (1 - solver.Sum(g[i, j, k, r]
+                                                          for r in range(num_drone_trip)
+                                                          for k in range(num_staff))))
 
     for i in cC:
         for k in range(num_staff):
@@ -295,14 +311,14 @@ def main(config, inp):
             solver.Add(
                 D[i, k] >= B[k] - T[i] - M * (
                         1 - solver.Sum(x[i, j, k] for j in N2) + solver.Sum(
-                            g[i, j, k, r] for j in cC for r in range(num_drone_trip))))
+                    g[i, j, k, r] for j in cC for r in range(num_drone_trip))))
 
     for i in cC:
         for k in range(num_staff):
             solver.Add(
                 D[i, k] <= B[k] - T[i] + M * (
                         1 - solver.Sum(x[i, j, k] for j in N2) + solver.Sum(
-                            g[i, j, k, r] for j in cC for r in range(num_drone_trip))))
+                    g[i, j, k, r] for j in cC for r in range(num_drone_trip))))
 
     for k in range(num_staff):
         solver.Add(B_a[k] >= B[k] - M * (1 - u[k]))
@@ -335,8 +351,8 @@ def main(config, inp):
         print("Time = ", solver.WallTime(), " milliseconds")
 
         #
-        result = {"x": {}, "y": {}, "f": {}, "g": {}, "v": {}, "C": {}, "s": {}, "D": {}, "t": {}, "t_a": {}, "T": {},
-                  "A": {}, "B": {}, "B_a": {}, "u": {}}
+        result = {"x": {}, "y": {}, "f": {}, "g": {}, "s": {}, "t": {}, "t_a": {}, "T": {}, "v": {},
+                  "A": {}, "B": {}, "B_a": {}, "C": {}, "D": {}, "u": {}}
         tech2color = config.tech2color
         color2tech = {v: k for (k, v) in tech2color.items()}
         graph = nx.MultiDiGraph()
