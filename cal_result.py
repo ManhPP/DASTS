@@ -25,8 +25,8 @@ if __name__ == '__main__':
         tau_a = inp["tau_a"]
         num_cus = inp["num_cus"]
 
-        staff_trip = [[0, 4, 1, 5, 2, 6, 3, 7]]
-        drone_trip = [[4], [1], [2], [6], [3]]
+        staff_trip = config.staff_trip
+        drone_trip = config.drone_trip
 
         wait_time = [0 for _ in range(num_cus + 2)]
         arrive_time = [0 for _ in range(num_cus + 2)]
