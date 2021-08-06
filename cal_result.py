@@ -25,8 +25,8 @@ if __name__ == '__main__':
         tau_a = inp["tau_a"]
         num_cus = inp["num_cus"]
 
-        staff_trip = [[0, 6, 5, 1, 4, 3, 7], [0, 2, 7]]
-        drone_trip = [[6], [1], [4], [3]]
+        staff_trip = [[0, 4, 1, 5, 2, 6, 3, 7]]
+        drone_trip = [[4], [1], [2], [6], [3]]
 
         wait_time = [0 for _ in range(num_cus + 2)]
         arrive_time = [0 for _ in range(num_cus + 2)]
@@ -46,7 +46,7 @@ if __name__ == '__main__':
                             s_cus = t[j]
                             d_cus = t[j + 1]
                             arrive_time[d_cus] = leave_time[s_cus] + tau[s_cus, d_cus]
-                            if 0 < j < index_of_i - 1:
+                            if 0 < j + 1 < index_of_i:
                                 leave_time[d_cus] = arrive_time[d_cus]
                             elif j == index_of_i - 1:
                                 if dr.index(i) == 0:
