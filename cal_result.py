@@ -31,7 +31,7 @@ def cal(staff_trip, drone_trip, tau, tau_a, num_cus):
                             if dr.index(i) == 0:
                                 cur_time_drone += tau_a[0, i]
                             else:
-                                cur_time_drone += tau_a[dr[index_of_i - 1], i]
+                                cur_time_drone += tau_a[dr[dr.index(i) - 1], i]
                             leave_time[d_cus] = max(cur_time_drone, arrive_time[d_cus])
                             cur_time_drone = leave_time[d_cus]
                         update_cus.append(d_cus)
