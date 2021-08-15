@@ -16,6 +16,7 @@ if __name__ == '__main__':
     config = OmegaConf.load(args.config)
     config.result_folder = os.path.join(config.result_folder, datetime.now().strftime("%m%d%Y%H%M%S"))
     paths = glob.glob(config.data_path)
+    print(paths)
     for data_set in paths:
         print(data_set)
         try:

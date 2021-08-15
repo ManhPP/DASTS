@@ -27,6 +27,10 @@ def load_input(config, data_set=None):
 
     result["tau"] = {}
     result["tau_a"] = {}
+
+    if config.params["distance_coeff"] > 0:
+        dis_matrix *= config.params["distance_coeff"]
+
     for i in range(len(dis_matrix)):
         for j in range(len(dis_matrix)):
             result["tau"][i, j] = float(dis_matrix[i, j] / staff_velocity)
