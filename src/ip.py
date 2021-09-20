@@ -162,11 +162,11 @@ def main(config, inp):
         solver.Add(v[num_cus + 1, r] == A[r] - A[r-1])
             # solver.Add(v[num_cus + 1, r] <= v[j, r] + tau_a[j, num_cus + 1] + M * (1 - y[j, num_cus + 1, r]))
 
-    for i in cC:
-        for j in cC:
-            solver.Add(solver.Sum(y[i, j, r] for r in range(num_drone_trip))
-                       + solver.Sum(x[i, j, k] for k in range(num_staff))
-                       <= 1)
+    # for i in cC:
+    #     for j in cC:
+    #         solver.Add(solver.Sum(y[i, j, r] for r in range(num_drone_trip))
+    #                    + solver.Sum(x[i, j, k] for k in range(num_staff))
+    #                    <= 1)
 
     for r in range(num_drone_trip - 1):
         solver.Add(solver.Sum(y[0, j, r] for j in cC1)
@@ -186,7 +186,7 @@ def main(config, inp):
 
     for k in range(num_staff):
         for r in range(num_drone_trip):
-            solver.Add(solver.Sum(f[i, j, k, r] for i in cC1 for j in N2) <= 1)
+            # solver.Add(solver.Sum(f[i, j, k, r] for i in cC1 for j in N2) <= 1)
             solver.Add(solver.Sum(f[i, j, k, r] for i in N1 for j in N2 if i not in cC1) == 0)
 
     for j in cC:
