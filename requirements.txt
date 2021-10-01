@@ -1,7 +1,8 @@
-ortools
-numpy
-networkx
-matplotlib
+ortools~=9.0.9048
+numpy~=1.21.0
+networkx~=2.5.1
+matplotlib~=3.4.2
 pandas
-scipy
-omegaconf
+scipy~=1.7.0
+omegaconf~=2.1.0
+gurobipy~=9.1.2

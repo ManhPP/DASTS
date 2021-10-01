@@ -5,6 +5,7 @@ from datetime import datetime
 from omegaconf import OmegaConf
 
 from src.ip import main
+from src.gurobi_ip import gp_main
 from src.util import *
 
 if __name__ == '__main__':
@@ -23,6 +24,9 @@ if __name__ == '__main__':
             inp = load_input(config, data_set)
             if config.params.cus_per_staff > 0:
                 config.params.num_staff = int(np.ceil(inp['num_cus']/config.params.cus_per_staff))
-            main(config, inp)
+            if config.solver.solver == "GUROBI":
+                gp_main(config, inp)
+            else:
+                main(config, inp)
         except Exception as e:
             print("Error: ", e)

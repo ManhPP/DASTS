@@ -360,7 +360,7 @@ def main(config, inp):
         solver.Add(num_cus * u[k] >= s[num_cus + 1, k])
 
     if config.solver.time_limit > 0:
-        solver.set_time_limit(config.solver.time_limit)
+        solver.set_time_limit(config.solver.time_limit*1000)
     if config.solver.num_worker > 0:
         solver.SetNumThreads(config.solver.num_worker)
 
