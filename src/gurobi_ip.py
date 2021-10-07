@@ -72,25 +72,25 @@ def gp_main(config, inp):
 
     for r in range(num_drone_trip):
         for i in N:
-            v[i, r] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L, name=f"v[{i}, {r}]") 
-            C[i, r] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"C[{i}, {r}]") 
+            v[i, r] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L, name=f"v[{i}, {r}]")
+            C[i, r] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"C[{i}, {r}]")
 
     for k in range(num_staff):
         for i in N:
             s[i, k] = model.addVar(vtype=GRB.INTEGER, lb=0, ub=int(num_cus), name=f"s[{i}, {k}]")
-            D[i, k] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"D[{i}, {k}]") 
+            D[i, k] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"D[{i}, {k}]")
 
     for i in N:
-        t[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"t[{i}]") 
-        t_a[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"t_a[{i}]") 
-        T[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"T[{i}]") 
+        t[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"t[{i}]")
+        t_a[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"t_a[{i}]")
+        T[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"T[{i}]")
 
     for r in range(num_drone_trip):
-        A[r] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"A[{r}]") 
+        A[r] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"A[{r}]")
 
     for k in range(num_staff):
-        B[k] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"B[{k}]") 
-        B_a[k] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"B_a[{k}]") 
+        B[k] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"B[{k}]")
+        B_a[k] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"B_a[{k}]")
         u[k] = model.addVar(vtype=GRB.BINARY, name=f"u[{k}]")
 
     model.setObjective(gp.quicksum(C[i, r] for i in cC for r in range(num_drone_trip)) + gp.quicksum(
@@ -113,7 +113,7 @@ def gp_main(config, inp):
 
     for k in range(num_staff):
         model.addConstr(gp.quicksum(x[0, j, k] for j in N2)
-                   == gp.quicksum(x[i, num_cus + 1, k] for i in N1))
+                        == gp.quicksum(x[i, num_cus + 1, k] for i in N1))
 
     model.addConstr(gp.quicksum(y[i, 0, r] for i in N2 for r in range(num_drone_trip)) == 0)
 
@@ -123,12 +123,12 @@ def gp_main(config, inp):
         model.addConstr(gp.quicksum(y[0, j, r] for j in cC1) <= 1)
 
         model.addConstr(gp.quicksum(y[0, j, r] for j in cC1)
-                   == gp.quicksum(y[i, num_cus + 1, r] for i in cC1))
+                        == gp.quicksum(y[i, num_cus + 1, r] for i in cC1))
 
     for i in cC:
         for k in range(num_staff):
             model.addConstr(gp.quicksum(x[i, j, k] for j in N2)
-                       == gp.quicksum(x[j, i, k] for j in N1))
+                            == gp.quicksum(x[j, i, k] for j in N1))
 
     for i in cC:
         model.addConstr(gp.quicksum(x[i, j, k] for j in N2 for k in range(num_staff) if j != i) == 1)
@@ -162,12 +162,12 @@ def gp_main(config, inp):
 
     for r in range(num_drone_trip - 1):
         model.addConstr(gp.quicksum(y[0, j, r] for j in cC1)
-                   >= gp.quicksum(y[0, j, r + 1] for j in cC1))
+                        >= gp.quicksum(y[0, j, r + 1] for j in cC1))
 
     for i in cC1:
         for r in range(num_drone_trip):
             model.addConstr(gp.quicksum(y[j, i, r] for j in cC11 if j != i)
-                       == gp.quicksum(y[i, j, r] for j in cC12 if j != i))
+                            == gp.quicksum(y[i, j, r] for j in cC12 if j != i))
 
     for i in cC1:
         model.addConstr(
@@ -192,20 +192,22 @@ def gp_main(config, inp):
     for k in range(num_staff):
         for i in N1:
             model.addConstr(s[num_cus + 1, k]
-                       >= s[i, k] - M * (1 - x[i, num_cus + 1, k]
-                                         + gp.quicksum(f[i, num_cus + 1, k, r]
-                                                      for r in range(num_drone_trip)
-                                                      for i in N1)))
+                            >= s[i, k] - M * (1 - x[i, num_cus + 1, k]
+                                              + gp.quicksum(f[i, num_cus + 1, k, r]
+                                                            for r in range(num_drone_trip)
+                                                            for i in N1)))
             model.addConstr(s[num_cus + 1, k]
-                       <= s[i, k] + M * (1 - x[i, num_cus + 1, k]
-                                         + gp.quicksum(f[i, num_cus + 1, k, r]
-                                                      for r in range(num_drone_trip)
-                                                      for i in N1)))
+                            <= s[i, k] + M * (1 - x[i, num_cus + 1, k]
+                                              + gp.quicksum(f[i, num_cus + 1, k, r]
+                                                            for r in range(num_drone_trip)
+                                                            for i in N1)))
 
     for j in cC:
         for k in range(num_staff):
-            model.addConstr(s[j, k] >= 1 - M * (1 - gp.quicksum(f[i, j, k, r] for r in range(num_drone_trip) for i in cC1)))
-            model.addConstr(s[j, k] <= 1 + M * (1 - gp.quicksum(f[i, j, k, r] for r in range(num_drone_trip) for i in cC1)))
+            model.addConstr(
+                s[j, k] >= 1 - M * (1 - gp.quicksum(f[i, j, k, r] for r in range(num_drone_trip) for i in cC1)))
+            model.addConstr(
+                s[j, k] <= 1 + M * (1 - gp.quicksum(f[i, j, k, r] for r in range(num_drone_trip) for i in cC1)))
             model.addConstr(s[j, k] <= M * gp.quicksum(x[j, i, k] for i in N2))
 
     for k in range(num_staff):
@@ -217,7 +219,8 @@ def gp_main(config, inp):
     for i in cC1:
         for r in range(num_drone_trip):
             model.addConstr(
-                gp.quicksum(f[i, j, k, r] for j in N2 for k in range(num_staff)) == gp.quicksum(y[z, i, r] for z in cC11))
+                gp.quicksum(f[i, j, k, r] for j in N2 for k in range(num_staff)) == gp.quicksum(
+                    y[z, i, r] for z in cC11))
 
     for i in cC1:
         for j in N2:
@@ -250,7 +253,8 @@ def gp_main(config, inp):
 
     for j in cC1:
         for i in cC1:
-            model.addConstr(t_a[j] >= t_a[i] + tau_a[i, j] - M * (1 - gp.quicksum(y[i, j, r] for r in range(num_drone_trip))))
+            model.addConstr(
+                t_a[j] >= t_a[i] + tau_a[i, j] - M * (1 - gp.quicksum(y[i, j, r] for r in range(num_drone_trip))))
 
     for j in cC1:
         model.addConstr(t_a[j] >= tau_a[0, j] - M * (
@@ -270,37 +274,40 @@ def gp_main(config, inp):
             model.addConstr(T[j] <= t[i] + tau[i, j] + M * (1 - gp.quicksum(x[i, j, k] for k in range(num_staff))))
 
     for i in cC:
-        model.addConstr(gp.quicksum(g[i, j, k, r] for r in range(num_drone_trip) for k in range(num_staff) for j in cC) <= 1)
+        model.addConstr(
+            gp.quicksum(g[i, j, k, r] for r in range(num_drone_trip) for k in range(num_staff) for j in cC) <= 1)
 
     for i in cC:
         for j in cC:
             model.addConstr(t[j] >= t[i] - M * (1 - gp.quicksum(g[i, j, k, r]
-                                                          for r in range(num_drone_trip)
-                                                          for k in range(num_staff))))
+                                                                for r in range(num_drone_trip)
+                                                                for k in range(num_staff))))
 
     for i in cC:
         for k in range(num_staff):
             model.addConstr(gp.quicksum(g[i, j, k, r] for r in range(num_drone_trip) for j in cC)
-                       <= gp.quicksum(x[i, j, k] for j in N2))
+                            <= gp.quicksum(x[i, j, k] for j in N2))
 
     for k in range(num_staff):
         for r in range(num_drone_trip):
             for i in N1:
                 for z in N1:
                     model.addConstr(gp.quicksum(f[i, j, k, r] for j in N2)
-                               >= g[z, i, k, r] - M * (1 - gp.quicksum(x[z, j, k] for j in N2)))
+                                    >= g[z, i, k, r] - M * (1 - gp.quicksum(x[z, j, k] for j in N2)))
 
     for r in range(num_drone_trip):
         for j in cC:
             for k in range(num_staff):
                 model.addConstr(
-                    gp.quicksum(g[i, j, k, r] for i in cC) >= s[j, k] - M * (1 - gp.quicksum(f[j, i, k, r] for i in N2)))
+                    gp.quicksum(g[i, j, k, r] for i in cC) >= s[j, k] - M * (
+                                1 - gp.quicksum(f[j, i, k, r] for i in N2)))
 
     for r in range(num_drone_trip):
         for j in cC:
             for k in range(num_staff):
                 model.addConstr(
-                    gp.quicksum(g[i, j, k, r] for i in cC) <= s[j, k] + M * (1 - gp.quicksum(f[j, i, k, r] for i in N2)))
+                    gp.quicksum(g[i, j, k, r] for i in cC) <= s[j, k] + M * (
+                                1 - gp.quicksum(f[j, i, k, r] for i in N2)))
 
     for i in cC:
         for r in range(num_drone_trip):
@@ -353,5 +360,15 @@ def gp_main(config, inp):
 
     model.optimize()
 
-    print('Obj: %g' % model.objVal)
+    if model.status == GRB.OPTIMAL:
+        print('Optimal objective: %g' % model.objVal)
+    elif model.status == GRB.INF_OR_UNBD:
+        print('Model is infeasible or unbounded')
+    elif model.status == GRB.INFEASIBLE:
+        print('Model is infeasible')
+    elif model.status == GRB.UNBOUNDED:
+        print('Model is unbounded')
+    else:
+        print('===\nOptimization ended with status %d' % model.status)
 
+    print('Obj: %g' % model.objVal)
