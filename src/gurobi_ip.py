@@ -1,8 +1,10 @@
 import gurobipy as gp
 from gurobipy import GRB
 
+from src.util import post_process
 
-def gp_main(config, inp):
+
+def solve_by_gurobi(config, inp):
     model = gp.Model("dasts")
     model.setParam("TimeLimit", config.solver.time_limit)
     # param
@@ -300,14 +302,14 @@ def gp_main(config, inp):
             for k in range(num_staff):
                 model.addConstr(
                     gp.quicksum(g[i, j, k, r] for i in cC) >= s[j, k] - M * (
-                                1 - gp.quicksum(f[j, i, k, r] for i in N2)))
+                            1 - gp.quicksum(f[j, i, k, r] for i in N2)))
 
     for r in range(num_drone_trip):
         for j in cC:
             for k in range(num_staff):
                 model.addConstr(
                     gp.quicksum(g[i, j, k, r] for i in cC) <= s[j, k] + M * (
-                                1 - gp.quicksum(f[j, i, k, r] for i in N2)))
+                            1 - gp.quicksum(f[j, i, k, r] for i in N2)))
 
     for i in cC:
         for r in range(num_drone_trip):
@@ -372,3 +374,6 @@ def gp_main(config, inp):
         print('===\nOptimization ended with status %d' % model.status)
 
     print('Obj: %g' % model.objVal)
+
+    post_process(model, model.status, inp, config, num_staff, num_drone_trip, N,
+                 x, y, f, g, v, s, t, t_a, T, A, B, C, D, B_a, u)

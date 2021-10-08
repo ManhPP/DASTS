@@ -1,13 +1,8 @@
-import json
-import os
-
-import networkx as nx
-from matplotlib import pyplot as plt
 from ortools.linear_solver import pywraplp
-from src.util import make_dirs_if_not_present
+from src.util import post_process
 
 
-def main(config, inp):
+def solve_by_ortools(config, inp):
     # solver = pywraplp.Solver('ip',
     #                          pywraplp.Solver.GUROBI_MIXED_INTEGER_PROGRAMMING)
     solver = pywraplp.Solver.CreateSolver(config.solver.solver)
@@ -368,126 +363,6 @@ def main(config, inp):
     print('Number of constraints =', solver.NumConstraints())
     result_status = solver.Solve()
     print(result_status)
-    if result_status == pywraplp.Solver.OPTIMAL or result_status == pywraplp.Solver.FEASIBLE:
-        print('optimal value = ', solver.Objective().Value())
-        print("Time = ", solver.WallTime(), " milliseconds")
 
-        #
-        result = {"x": {}, "y": {}, "f": {}, "g": {}, "s": {}, "t": {}, "t_a": {}, "T": {}, "v": {},
-                  "A": {}, "B": {}, "B_a": {}, "C": {}, "D": {}, "u": {}}
-        tech2color = config.tech2color
-        color2tech = {v: k for (k, v) in tech2color.items()}
-        graph = nx.MultiDiGraph()
-        drone_graph = nx.MultiDiGraph()
-
-        print_all = False
-        color_set = {}
-        for k in range(num_staff):
-            for j in N:
-                for i in N:
-                    if x[i, j, k].solution_value() > 0 and not print_all:
-                        result["x"][f"x[{i},{j},{k}]"] = x[i, j, k].solution_value()
-                        if i not in graph.nodes:
-                            color_set[i] = tech2color[k]
-                        elif k != color2tech[graph.nodes[i]['color']]:
-                            color_set[i] = tech2color[-1]
-                        if j not in graph.nodes:
-                            color_set[j] = tech2color[k]
-                        elif k != color2tech[graph.nodes[j]['color']]:
-                            color_set[j] = tech2color[-1]
-                        graph.add_nodes_from([
-                            (i, {"color": color_set[i]}),
-                            (j, {"color": color_set[j]})
-                        ])
-                        graph.add_edge(i, j)
-
-        for r in range(num_drone_trip):
-            for j in N:
-                for i in N:
-                    if y[i, j, r].solution_value() > 0 and not print_all:
-                        result["y"][f"y[{i},{j},{r}]"] = y[i, j, r].solution_value()
-                        drone_graph.add_nodes_from([i, j])
-                        drone_graph.add_edge(i, j, label=r)
-
-        for k in range(num_staff):
-            for r in range(num_drone_trip):
-                for j in N:
-                    for i in N:
-                        if f[i, j, k, r].solution_value() > 0 and not print_all:
-                            result["f"][f"f[{i},{j},{k},{r}]"] = f[i, j, k, r].solution_value()
-                        if g[i, j, k, r].solution_value() > 0 and not print_all:
-                            result["g"][f"g[{i},{j},{k},{r}]"] = g[i, j, k, r].solution_value()
-
-        for r in range(num_drone_trip):
-            for i in N:
-                if v[i, r].solution_value() > 0 and not print_all:
-                    result["v"][f"v[{i}, {r}]"] = v[i, r].solution_value()
-                if C[i, r].solution_value() > 0 and not print_all:
-                    result["C"][f"C[{i}, {r}]"] = C[i, r].solution_value()
-
-        for k in range(num_staff):
-            for i in N:
-                if s[i, k].solution_value() > 0 and not print_all:
-                    result["s"][f"s[{i}, {k}]"] = s[i, k].solution_value()
-                if D[i, k].solution_value() > 0 and not print_all:
-                    result["D"][f"D[{i}, {k}]"] = D[i, k].solution_value()
-
-        for i in N:
-            if t[i].solution_value() > 0 and not print_all:
-                result["t"][f"t[{i}]"] = t[i].solution_value()
-            if t_a[i].solution_value() > 0 and not print_all:
-                result["t_a"][f"t_a[{i}]"] = t_a[i].solution_value()
-            if T[i].solution_value() > 0 and not print_all:
-                result["T"][f"T[{i}]"] = T[i].solution_value()
-
-        for r in range(num_drone_trip):
-            if A[r].solution_value() > 0 and not print_all:
-                result["A"][f"A[{r}]"] = A[r].solution_value()
-
-        for k in range(num_staff):
-            if B[k].solution_value() > 0 and not print_all:
-                result["B"][f"B[{k}]"] = B[k].solution_value()
-            if B_a[k].solution_value() > 0 and not print_all:
-                result["B_a"][f"B_a[{k}]"] = B_a[k].solution_value()
-            if u[k].solution_value() > 0 and not print_all:
-                result["u"][f"u[{k}]"] = u[k].solution_value()
-
-        result["Optimal"] = solver.Objective().Value()
-        result["Time"] = solver.WallTime()
-        result["num_constraint"] = solver.NumConstraints()
-        result['Number of variables'] = solver.NumVariables()
-        result["status"] = "OPTIMAL" if result_status == pywraplp.Solver.OPTIMAL else "FEASIBLE"
-
-        result.update(dict(config.params))
-        result.update(dict(config.solver))
-
-        make_dirs_if_not_present(config.result_folder)
-        with open(os.path.join(config.result_folder, 'result_' + inp['data_set'] + '.json'), 'w') as json_file:
-            json.dump(result, json_file, indent=2)
-
-        pos = nx.spectral_layout(graph, scale=10)
-        plt.subplot(121)
-        nx.draw_networkx(graph, pos, node_color=color_set.values(), font_size=16, font_color="whitesmoke",
-                         node_size=500,
-                         alpha=0.9)
-        nx.draw_networkx_edge_labels(graph, pos, edge_labels=nx.get_edge_attributes(graph, 'label'), font_size=16)
-        drone_pos = nx.spiral_layout(drone_graph, scale=10)
-        edge_labels = dict([((u, v,), d['label'])
-                            for u, v, d in drone_graph.edges(data=True)])
-        plt.subplot(122)
-        nx.draw(drone_graph, drone_pos)
-        nx.draw_networkx(drone_graph, with_labels=True, pos=drone_pos)
-        nx.draw_networkx_edge_labels(drone_graph, drone_pos, edge_labels=edge_labels)
-        plt.savefig(os.path.join(config.result_folder, "result_" + inp['data_set'] + ".png"), dpi=1000)
-        plt.clf()
-        # plt.show()
-        return solver.Objective().Value(), solver.WallTime()
-    else:
-        make_dirs_if_not_present(config.result_folder)
-        result = {"status": "INFEASIBLE" if result_status == 2 else result_status}
-        result.update(dict(config.params))
-
-        result.update(dict(config.solver))
-
-        with open(os.path.join(config.result_folder, 'result_' + inp['data_set'] + '.json'), 'w') as json_file:
-            json.dump(result, json_file, indent=2)
+    post_process(solver, result_status, inp, config, num_staff, num_drone_trip, N,
+                 x, y, f, g, v, s, t, t_a, T, A, B, C, D, B_a, u)
