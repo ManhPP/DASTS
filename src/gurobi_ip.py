@@ -1,13 +1,17 @@
 import gurobipy as gp
 from gurobipy import GRB
 
-from src.util import post_process
+from src.util import post_process, make_dirs_if_not_present
 
 
 def solve_by_gurobi(config, inp):
     model = gp.Model("dasts")
     model.setParam("TimeLimit", config.solver.time_limit)
     model.setParam("IntegralityFocus", 1)
+
+    make_dirs_if_not_present(config.result_folder)
+
+    model.setParam("LogFile", config.result_folder+"/"+inp['data_set'] + ".log")
     # param
     num_cus = inp["num_cus"]
     num_staff = config.params["num_staff"]
