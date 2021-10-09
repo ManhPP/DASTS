@@ -7,6 +7,7 @@ from src.util import post_process
 def solve_by_gurobi(config, inp):
     model = gp.Model("dasts")
     model.setParam("TimeLimit", config.solver.time_limit)
+    model.setParam("IntegralityFocus", 1)
     # param
     num_cus = inp["num_cus"]
     num_staff = config.params["num_staff"]
