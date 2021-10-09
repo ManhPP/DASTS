@@ -124,11 +124,9 @@ def post_process(model, status, inp, config, num_staff, num_drone_trip, N,
     make_dirs_if_not_present(config.result_folder)
 
     if config.solver.solver == "GUROBI" and not (status == GRB.OPTIMAL or status == GRB.TIME_LIMIT):
-        make_dirs_if_not_present(config.result_folder)
         result = {"status": "INFEASIBLE" if status == GRB.INFEASIBLE else status}
 
     elif config.solver.solver != "GUROBI" and not (status == pywraplp.Solver.OPTIMAL or status == pywraplp.Solver.FEASIBLE):
-        make_dirs_if_not_present(config.result_folder)
         result = {"status": "INFEASIBLE" if status == 2 else status}
 
     else:
