@@ -4,6 +4,7 @@ import os
 import networkx as nx
 import numpy as np
 import scipy.io
+from docplex.util.status import JobSolveStatus as cp_status
 from gurobipy import GRB
 from matplotlib import pyplot as plt
 from ortools.linear_solver import pywraplp
@@ -82,6 +83,8 @@ def get_variable_value(var, solver):
 def get_obj_value(model, solver):
     if solver == "GUROBI":
         return model.objVal
+    elif solver == "CPLEX":
+        return model.objective_value
     else:
         return model.Objective().Value()
 
@@ -89,6 +92,8 @@ def get_obj_value(model, solver):
 def get_runtime(model, solver):
     if solver == "GUROBI":
         return model.getAttr("Runtime")
+    elif solver == "CPLEX":
+        return -1
     else:
         return model.WallTime()
 
@@ -96,6 +101,8 @@ def get_runtime(model, solver):
 def get_num_constraint(model, solver):
     if solver == "GUROBI":
         return model.getAttr("NumConstrs")
+    elif solver == "CPLEX":
+        return model.number_of_constraints
     else:
         return model.NumConstraints()
 
@@ -103,6 +110,8 @@ def get_num_constraint(model, solver):
 def get_num_var(model, solver):
     if solver == "GUROBI":
         return model.getAttr("NumVars")
+    elif solver == "CPLEX":
+        return model.number_of_variables
     else:
         return model.NumVariables()
 
@@ -110,6 +119,8 @@ def get_num_var(model, solver):
 def get_status(status, solver):
     if solver == "GUROBI":
         return "OPTIMAL" if status == GRB.OPTIMAL else "FEASIBLE"
+    elif solver == "CPLEX":
+        return "OPTIMAL" if status == cp_status.OPTIMAL_SOLUTION else "FEASIBLE"
     else:
         return "OPTIMAL" if status == pywraplp.Solver.OPTIMAL else "FEASIBLE"
 
@@ -126,7 +137,13 @@ def post_process(model, status, inp, config, num_staff, num_drone_trip, N,
     if config.solver.solver == "GUROBI" and not (status == GRB.OPTIMAL or status == GRB.TIME_LIMIT):
         result = {"status": "INFEASIBLE" if status == GRB.INFEASIBLE else status}
 
-    elif config.solver.solver != "GUROBI" and not (status == pywraplp.Solver.OPTIMAL or status == pywraplp.Solver.FEASIBLE):
+    if config.solver.solver == "CPLEX" and not (
+            status == cp_status.OPTIMAL_SOLUTION or status == cp_status.FEASIBLE_SOLUTION):
+        result = {"status": "INFEASIBLE" if status == cp_status.INFEASIBLE_SOLUTION
+                                            or cp_status.INFEASIBLE_OR_UNBOUNDED_SOLUTION else status}
+
+    elif config.solver.solver != "GUROBI" and config.solver.solver != "CPLEX" and not (
+            status == pywraplp.Solver.OPTIMAL or status == pywraplp.Solver.FEASIBLE):
         result = {"status": "INFEASIBLE" if status == 2 else status}
 
     else:

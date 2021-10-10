@@ -6,6 +6,7 @@ from omegaconf import OmegaConf
 
 from src.ortools_ip import solve_by_ortools
 from src.gurobi_ip import solve_by_gurobi
+from src.cplex_ip import solve_by_cplex
 from src.util import *
 
 
@@ -27,6 +28,8 @@ if __name__ == '__main__':
                 config.params.num_staff = int(np.ceil(inp['num_cus']/config.params.cus_per_staff))
             if config.solver.solver == "GUROBI":
                 solve_by_gurobi(config, inp)
+            elif config.solver.solver == "CPLEX":
+                solve_by_cplex(config, inp)
             else:
                 solve_by_ortools(config, inp)
         except Exception as e:
