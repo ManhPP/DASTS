@@ -9,9 +9,16 @@ def solve_by_gurobi(config, inp):
     model.setParam("TimeLimit", config.solver.time_limit)
     model.setParam("IntegralityFocus", 1)
 
+    try:
+        special_params = config.params.gurobi
+        for p_name, p_value in special_params.items():
+            model.setParam(p_name, p_value)
+    except Exception as e:
+        print("Thieu config: ", e)
+
     make_dirs_if_not_present(config.result_folder)
 
-    model.setParam("LogFile", config.result_folder+"/"+inp['data_set'] + ".log")
+    model.setParam("LogFile", config.result_folder + "/" + inp['data_set'] + ".log")
     # param
     num_cus = inp["num_cus"]
     num_staff = config.params["num_staff"]
