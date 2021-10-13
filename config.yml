@@ -7,7 +7,7 @@ params:
     cus_per_staff: -1
     distance_coeff: -1
 
-data_path: data/d1/6.5.1.txt
+data_path: data/d1/6.5.1.txt, data/d1/6.5.2.txt
 
 result_folder: result
 
