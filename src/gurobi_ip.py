@@ -11,11 +11,11 @@ def solve_by_gurobi(config, inp):
     model.setParam("IntegralityFocus", 1)
 
     try:
-        special_params = config.params.gurobi
+        special_params = config.solver.model_params.gurobi
         for p_name, p_value in special_params.items():
             model.setParam(p_name, p_value)
-    except Exception as e:
-        print("Thieu config: ", e)
+    except Exception:
+        print("Khong co config bo sung cho mo hinh")
 
     make_dirs_if_not_present(config.result_folder)
 

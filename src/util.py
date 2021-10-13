@@ -76,6 +76,8 @@ def make_dirs_if_not_present(path):
 def get_variable_value(var, solver):
     if solver == "GUROBI":
         return var.X
+    elif solver == "CPLEX":
+        return var.solution_value
     else:
         return var.solution_value()
 
@@ -129,8 +131,14 @@ def post_process(model, status, inp, config, num_staff, num_drone_trip, N,
                  x, y, f, g, v, s, t, t_a, T, A, B, C, D, B_a, u):
     result = {"x": {}, "y": {}, "f": {}, "g": {}, "s": {}, "t": {}, "t_a": {}, "T": {}, "v": {},
               "A": {}, "B": {}, "B_a": {}, "C": {}, "D": {}, "u": {}}
+
     result.update(dict(config.params))
     result.update(dict(config.solver))
+
+    if config.solver.solver == "GUROBI":
+        result["model_params"] = dict(config.solver.model_params.gurobi)
+    elif config.solver.solver == "CPLEX":
+        result["model_params"] = dict(config.solver.model_params.cplex)
 
     make_dirs_if_not_present(config.result_folder)
 
