@@ -6,14 +6,14 @@ params:
     num_staff: 2
     cus_per_staff: -1
     distance_coeff: 0.5
-    gurobi: {} #tham so dac biet cho gurobi
-
+    gurobi: {} # tham so dac biet cho gurobi, format name:value
+    cplex: {2009: 0.3} # tham so dac biet cho cplex, format id:value, xem id model.parameters
 data_path: data/d1/6.5.1.txt
 
 result_folder: result
 
 solver:
-    solver: GUROBI #CBC SCIP
+    solver: CPLEX #CBC, SCIP, GUROBI, CPLEX
     num_worker: -1
     time_limit: 120
 

@@ -5,7 +5,8 @@ from src.util import post_process, make_dirs_if_not_present
 
 
 def solve_by_gurobi(config, inp):
-    model = gp.Model("dasts")
+    model = gp.Model("DASTS-GUROBI")
+
     model.setParam("TimeLimit", config.solver.time_limit)
     model.setParam("IntegralityFocus", 1)
 

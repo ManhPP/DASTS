@@ -4,7 +4,7 @@ from src.util import post_process
 
 
 def solve_by_cplex(config, inp):
-    model = Model("DASTS")
+    model = Model("DASTS-CPLEX")
 
     # param
     num_cus = inp["num_cus"]
@@ -354,6 +354,13 @@ def solve_by_cplex(config, inp):
         model.add_constraint(num_cus * u[k] >= s[num_cus + 1, k])
 
     model.set_time_limit(config.solver.time_limit)
+
+    try:
+        special_params = config.params.cplex
+        for p_id, p_value in special_params.items():
+            model.get_parameter_from_id(p_id).set(p_value)
+    except Exception as e:
+        print("Thieu config: ", e)
 
     model.print_information()
     model.solve()
