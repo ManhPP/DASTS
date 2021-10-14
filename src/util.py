@@ -167,28 +167,32 @@ def post_process(model, status, inp, config, num_staff, num_drone_trip, N,
                 for i in N:
                     if get_variable_value(x[i, j, k], config.solver.solver) > 0 and not print_all:
                         result["x"][f"x[{i},{j},{k}]"] = get_variable_value(x[i, j, k], config.solver.solver)
-                        if i not in graph.nodes:
-                            color_set[i] = tech2color[k]
-                        elif k != color2tech[graph.nodes[i]['color']]:
-                            color_set[i] = tech2color[-1]
-                        if j not in graph.nodes:
-                            color_set[j] = tech2color[k]
-                        elif k != color2tech[graph.nodes[j]['color']]:
-                            color_set[j] = tech2color[-1]
-                        graph.add_nodes_from([
-                            (i, {"color": color_set[i]}),
-                            (j, {"color": color_set[j]})
-                        ])
-                        graph.add_edge(i, j)
-
+                        try:
+                            if i not in graph.nodes:
+                                color_set[i] = tech2color[k]
+                            elif k != color2tech[graph.nodes[i]['color']]:
+                                color_set[i] = tech2color[-1]
+                            if j not in graph.nodes:
+                                color_set[j] = tech2color[k]
+                            elif k != color2tech[graph.nodes[j]['color']]:
+                                color_set[j] = tech2color[-1]
+                            graph.add_nodes_from([
+                                (i, {"color": color_set[i]}),
+                                (j, {"color": color_set[j]})
+                            ])
+                            graph.add_edge(i, j)
+                        except Exception as e:
+                            print("Loi khi ve lai do thi duong di cua nhan vien: ", e)
         for r in range(num_drone_trip):
             for j in N:
                 for i in N:
                     if get_variable_value(y[i, j, r], config.solver.solver) > 0 and not print_all:
                         result["y"][f"y[{i},{j},{r}]"] = get_variable_value(y[i, j, r], config.solver.solver)
-                        drone_graph.add_nodes_from([i, j])
-                        drone_graph.add_edge(i, j, label=r)
-
+                        try:
+                            drone_graph.add_nodes_from([i, j])
+                            drone_graph.add_edge(i, j, label=r)
+                        except Exception as e:
+                            print("Loi khi ve lai do thi duong di cua drone: ", e)
         for k in range(num_staff):
             for r in range(num_drone_trip):
                 for j in N:
@@ -239,21 +243,24 @@ def post_process(model, status, inp, config, num_staff, num_drone_trip, N,
 
         result["status"] = get_status(status, config.solver.solver)
 
-        pos = nx.spectral_layout(graph, scale=10)
-        plt.subplot(121)
-        nx.draw_networkx(graph, pos, node_color=color_set.values(), font_size=16, font_color="whitesmoke",
-                         node_size=500,
-                         alpha=0.9)
-        nx.draw_networkx_edge_labels(graph, pos, edge_labels=nx.get_edge_attributes(graph, 'label'), font_size=16)
-        drone_pos = nx.spiral_layout(drone_graph, scale=10)
-        edge_labels = dict([((u, v,), d['label'])
-                            for u, v, d in drone_graph.edges(data=True)])
-        plt.subplot(122)
-        nx.draw(drone_graph, drone_pos)
-        nx.draw_networkx(drone_graph, with_labels=True, pos=drone_pos)
-        nx.draw_networkx_edge_labels(drone_graph, drone_pos, edge_labels=edge_labels)
-        plt.savefig(os.path.join(config.result_folder, "result_" + inp['data_set'] + ".png"), dpi=1000)
-        plt.clf()
+        try:
+            pos = nx.spectral_layout(graph, scale=10)
+            plt.subplot(121)
+            nx.draw_networkx(graph, pos, node_color=color_set.values(), font_size=16, font_color="whitesmoke",
+                             node_size=500,
+                             alpha=0.9)
+            nx.draw_networkx_edge_labels(graph, pos, edge_labels=nx.get_edge_attributes(graph, 'label'), font_size=16)
+            drone_pos = nx.spiral_layout(drone_graph, scale=10)
+            edge_labels = dict([((u, v,), d['label'])
+                                for u, v, d in drone_graph.edges(data=True)])
+            plt.subplot(122)
+            nx.draw(drone_graph, drone_pos)
+            nx.draw_networkx(drone_graph, with_labels=True, pos=drone_pos)
+            nx.draw_networkx_edge_labels(drone_graph, drone_pos, edge_labels=edge_labels)
+            plt.savefig(os.path.join(config.result_folder, "result_" + inp['data_set'] + ".png"), dpi=1000)
+            plt.clf()
+        except Exception as e:
+            print("Loi khi ghi do thi ra file: ", e)
 
     with open(os.path.join(config.result_folder, 'result_' + inp['data_set'] + '.json'), 'w') as json_file:
         json.dump(result, json_file, indent=2)
