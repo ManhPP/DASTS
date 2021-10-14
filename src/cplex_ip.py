@@ -115,7 +115,7 @@ def solve_by_cplex(config, inp):
 
     for k in range(num_staff):
         model.add_constraint(model.sum(x[0, j, k] for j in N2)
-                   == model.sum(x[i, num_cus + 1, k] for i in N1))
+                             == model.sum(x[i, num_cus + 1, k] for i in N1))
 
     model.add_constraint(model.sum(y[i, 0, r] for i in N2 for r in range(num_drone_trip)) == 0)
 
@@ -125,12 +125,12 @@ def solve_by_cplex(config, inp):
         model.add_constraint(model.sum(y[0, j, r] for j in cC1) <= 1)
 
         model.add_constraint(model.sum(y[0, j, r] for j in cC1)
-                   == model.sum(y[i, num_cus + 1, r] for i in cC1))
+                             == model.sum(y[i, num_cus + 1, r] for i in cC1))
 
     for i in cC:
         for k in range(num_staff):
             model.add_constraint(model.sum(x[i, j, k] for j in N2)
-                       == model.sum(x[j, i, k] for j in N1))
+                                 == model.sum(x[j, i, k] for j in N1))
 
     for i in cC:
         model.add_constraint(model.sum(x[i, j, k] for j in N2 for k in range(num_staff) if j != i) == 1)
@@ -151,10 +151,11 @@ def solve_by_cplex(config, inp):
             model.add_constraint(v[j, r] >= tau_a[0, j] + M * (y[0, j, r] - 1))
             model.add_constraint(v[j, r] <= tau_a[0, j] + M * (1 - y[0, j, r]))
 
-    model.add_constraint(v[num_cus + 1, 0] == A[0])
+    # model.add_constraint(v[num_cus + 1, 0] == A[0])
     for r in range(1, num_drone_trip):
-        model.add_constraint(v[num_cus + 1, r] == A[r] - A[r-1])
-            # model.add_constraint(v[num_cus + 1, r] <= v[j, r] + tau_a[j, num_cus + 1] + M * (1 - y[j, num_cus + 1, r]))
+        # model.add_constraint(v[num_cus + 1, r] == A[r] - A[r - 1])
+        for j in cC1:
+            model.add_constraint(v[num_cus + 1, r] <= v[j, r] + tau_a[j, num_cus + 1] + M * (1 - y[j, num_cus + 1, r]))
 
     # for i in cC:
     #     for j in cC:
@@ -164,12 +165,12 @@ def solve_by_cplex(config, inp):
 
     for r in range(num_drone_trip - 1):
         model.add_constraint(model.sum(y[0, j, r] for j in cC1)
-                   >= model.sum(y[0, j, r + 1] for j in cC1))
+                             >= model.sum(y[0, j, r + 1] for j in cC1))
 
     for i in cC1:
         for r in range(num_drone_trip):
             model.add_constraint(model.sum(y[j, i, r] for j in cC11 if j != i)
-                       == model.sum(y[i, j, r] for j in cC12 if j != i))
+                                 == model.sum(y[i, j, r] for j in cC12 if j != i))
 
     for i in cC1:
         model.add_constraint(
@@ -194,20 +195,22 @@ def solve_by_cplex(config, inp):
     for k in range(num_staff):
         for i in N1:
             model.add_constraint(s[num_cus + 1, k]
-                       >= s[i, k] - M * (1 - x[i, num_cus + 1, k]
-                                         + model.sum(f[i, num_cus + 1, k, r]
-                                                      for r in range(num_drone_trip)
-                                                      for i in N1)))
+                                 >= s[i, k] - M * (1 - x[i, num_cus + 1, k]
+                                                   + model.sum(f[i, num_cus + 1, k, r]
+                                                               for r in range(num_drone_trip)
+                                                               for i in N1)))
             model.add_constraint(s[num_cus + 1, k]
-                       <= s[i, k] + M * (1 - x[i, num_cus + 1, k]
-                                         + model.sum(f[i, num_cus + 1, k, r]
-                                                      for r in range(num_drone_trip)
-                                                      for i in N1)))
+                                 <= s[i, k] + M * (1 - x[i, num_cus + 1, k]
+                                                   + model.sum(f[i, num_cus + 1, k, r]
+                                                               for r in range(num_drone_trip)
+                                                               for i in N1)))
 
     for j in cC:
         for k in range(num_staff):
-            model.add_constraint(s[j, k] >= 1 - M * (1 - model.sum(f[i, j, k, r] for r in range(num_drone_trip) for i in cC1)))
-            model.add_constraint(s[j, k] <= 1 + M * (1 - model.sum(f[i, j, k, r] for r in range(num_drone_trip) for i in cC1)))
+            model.add_constraint(
+                s[j, k] >= 1 - M * (1 - model.sum(f[i, j, k, r] for r in range(num_drone_trip) for i in cC1)))
+            model.add_constraint(
+                s[j, k] <= 1 + M * (1 - model.sum(f[i, j, k, r] for r in range(num_drone_trip) for i in cC1)))
             model.add_constraint(s[j, k] <= M * model.sum(x[j, i, k] for i in N2))
 
     for k in range(num_staff):
@@ -252,13 +255,14 @@ def solve_by_cplex(config, inp):
 
     for j in cC1:
         for i in cC1:
-            model.add_constraint(t_a[j] >= t_a[i] + tau_a[i, j] - M * (1 - model.sum(y[i, j, r] for r in range(num_drone_trip))))
+            model.add_constraint(
+                t_a[j] >= t_a[i] + tau_a[i, j] - M * (1 - model.sum(y[i, j, r] for r in range(num_drone_trip))))
 
     for j in cC1:
         model.add_constraint(t_a[j] >= tau_a[0, j] - M * (
                 1 - y[0, j, 0]))
         for r in range(1, num_drone_trip):
-            model.add_constraint(t_a[j] >= A[r-1] + tau_a[0, j] - M * (
+            model.add_constraint(t_a[j] >= A[r - 1] + tau_a[0, j] - M * (
                     1 - y[0, j, r]))
 
     model.add_constraint(t[0] == 0)
@@ -272,25 +276,26 @@ def solve_by_cplex(config, inp):
             model.add_constraint(T[j] <= t[i] + tau[i, j] + M * (1 - model.sum(x[i, j, k] for k in range(num_staff))))
 
     for i in cC:
-        model.add_constraint(model.sum(g[i, j, k, r] for r in range(num_drone_trip) for k in range(num_staff) for j in cC) <= 1)
+        model.add_constraint(
+            model.sum(g[i, j, k, r] for r in range(num_drone_trip) for k in range(num_staff) for j in cC) <= 1)
 
     for i in cC:
         for j in cC:
             model.add_constraint(t[j] >= t[i] - M * (1 - model.sum(g[i, j, k, r]
-                                                          for r in range(num_drone_trip)
-                                                          for k in range(num_staff))))
+                                                                   for r in range(num_drone_trip)
+                                                                   for k in range(num_staff))))
 
     for i in cC:
         for k in range(num_staff):
             model.add_constraint(model.sum(g[i, j, k, r] for r in range(num_drone_trip) for j in cC)
-                       <= model.sum(x[i, j, k] for j in N2))
+                                 <= model.sum(x[i, j, k] for j in N2))
 
     for k in range(num_staff):
         for r in range(num_drone_trip):
             for i in N1:
                 for z in N1:
                     model.add_constraint(model.sum(f[i, j, k, r] for j in N2)
-                               >= g[z, i, k, r] - M * (1 - model.sum(x[z, j, k] for j in N2)))
+                                         >= g[z, i, k, r] - M * (1 - model.sum(x[z, j, k] for j in N2)))
 
     for r in range(num_drone_trip):
         for j in cC:
@@ -320,7 +325,8 @@ def solve_by_cplex(config, inp):
 
     for i in cC:
         for k in range(num_staff):
-            model.add_constraint(D[i, k] <= M * (1 - model.sum(g[i, j, k, r] for j in cC for r in range(num_drone_trip))))
+            model.add_constraint(
+                D[i, k] <= M * (1 - model.sum(g[i, j, k, r] for j in cC for r in range(num_drone_trip))))
 
     for i in cC:
         for k in range(num_staff):

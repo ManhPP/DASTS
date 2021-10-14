@@ -164,10 +164,11 @@ def solve_by_gurobi(config, inp):
             model.addConstr(v[j, r] >= tau_a[0, j] + M * (y[0, j, r] - 1))
             model.addConstr(v[j, r] <= tau_a[0, j] + M * (1 - y[0, j, r]))
 
-    model.addConstr(v[num_cus + 1, 0] == A[0])
-    for r in range(1, num_drone_trip):
-        model.addConstr(v[num_cus + 1, r] == A[r] - A[r - 1])
-        # model.addConstr(v[num_cus + 1, r] <= v[j, r] + tau_a[j, num_cus + 1] + M * (1 - y[j, num_cus + 1, r]))
+    # model.addConstr(v[num_cus + 1, 0] == A[0])
+    for r in range(num_drone_trip):
+        # model.addConstr(v[num_cus + 1, r] <= A[r] - A[r - 1])
+        for j in cC1:
+            model.addConstr(v[num_cus + 1, r] <= v[j, r] + tau_a[j, num_cus + 1] + M * (1 - y[j, num_cus + 1, r]))
 
     # for i in cC:
     #     for j in cC:
