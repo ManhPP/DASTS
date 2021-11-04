@@ -365,5 +365,5 @@ def solve_by_ortools(config, inp):
     result_status = solver.Solve()
     print(result_status)
 
-    post_process(solver, result_status, inp, config, num_staff, num_drone_trip, N,
+    post_process(solver, result_status, inp, config,
                  x, y, f, g, v, s, t, t_a, T, A, B, C, D, B_a, u)

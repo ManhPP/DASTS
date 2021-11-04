@@ -4,11 +4,11 @@ from datetime import datetime
 
 from omegaconf import OmegaConf
 
-from src.ortools_ip import solve_by_ortools
-from src.gurobi_ip import solve_by_gurobi
-from src.cplex_ip import solve_by_cplex
+from src.v1.ortools_ip import solve_by_ortools
+from src.v1.gurobi_ip_v1 import solve_by_gurobi
+from src.v1.cplex_ip import solve_by_cplex
 from src.util import *
-
+from src.v2.gurobi_ip_v2 import solve_by_gurobi_v2
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DASTS')
@@ -27,12 +27,16 @@ if __name__ == '__main__':
             try:
                 inp = load_input(config, data_set)
                 if config.params.cus_per_staff > 0:
-                    config.params.num_staff = int(np.ceil(inp['num_cus']/config.params.cus_per_staff))
-                if config.solver.solver == "GUROBI":
-                    solve_by_gurobi(config, inp)
-                elif config.solver.solver == "CPLEX":
-                    solve_by_cplex(config, inp)
+                    config.params.num_staff = int(np.ceil(inp['num_cus'] / config.params.cus_per_staff))
+
+                if config.ver == 2:
+                    solve_by_gurobi_v2(config, inp)
                 else:
-                    solve_by_ortools(config, inp)
+                    if config.solver.solver == "GUROBI":
+                        solve_by_gurobi(config, inp)
+                    elif config.solver.solver == "CPLEX":
+                        solve_by_cplex(config, inp)
+                    else:
+                        solve_by_ortools(config, inp)
             except Exception as e:
                 print("Error: ", e)

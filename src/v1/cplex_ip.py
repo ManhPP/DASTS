@@ -374,5 +374,5 @@ def solve_by_cplex(config, inp):
     # model.print_solution()
     # print(result_status)
     #
-    post_process(model, model.get_solve_status(), inp, config, num_staff, num_drone_trip, N,
+    post_process(model, model.get_solve_status(), inp, config,
                  x, y, f, g, v, s, t, t_a, T, A, B, C, D, B_a, u)

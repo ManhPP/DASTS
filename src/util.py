@@ -127,8 +127,29 @@ def get_status(status, solver):
         return "OPTIMAL" if status == pywraplp.Solver.OPTIMAL else "FEASIBLE"
 
 
-def post_process(model, status, inp, config, num_staff, num_drone_trip, N,
+def post_process(model, status, inp, config,
                  x, y, f, g, v, s, t, t_a, T, A, B, C, D, B_a, u):
+    num_staff = config.params["num_staff"]
+    num_cus = inp["num_cus"]
+    cC1 = inp["C1"]
+    cC = inp["C"]
+
+    cC11 = cC1[:]
+    cC11.append(0)
+    cC12 = cC1[:]
+    cC12.append(num_cus + 1)
+
+    N1 = inp["C"][:]
+    N1.append(0)
+
+    N2 = inp["C"][:]
+    N2.append(num_cus + 1)
+
+    N = N2[:]
+    N.append(0)
+
+    num_drone_trip = len(cC1)
+
     result = {"x": {}, "y": {}, "f": {}, "g": {}, "s": {}, "t": {}, "t_a": {}, "T": {}, "v": {},
               "A": {}, "B": {}, "B_a": {}, "C": {}, "D": {}, "u": {}}
 
@@ -163,8 +184,10 @@ def post_process(model, status, inp, config, num_staff, num_drone_trip, N,
         print_all = False
         color_set = {}
         for k in range(num_staff):
-            for j in N:
-                for i in N:
+            for j in N2:
+                for i in N1:
+                    if i == j:
+                        continue
                     if get_variable_value(x[i, j, k], config.solver.solver) > 0 and not print_all:
                         result["x"][f"x[{i},{j},{k}]"] = get_variable_value(x[i, j, k], config.solver.solver)
                         try:
@@ -184,8 +207,10 @@ def post_process(model, status, inp, config, num_staff, num_drone_trip, N,
                         except Exception as e:
                             print("Loi khi ve lai do thi duong di cua nhan vien: ", e)
         for r in range(num_drone_trip):
-            for j in N:
-                for i in N:
+            for j in cC12:
+                for i in cC11:
+                    if i == j:
+                        continue
                     if get_variable_value(y[i, j, r], config.solver.solver) > 0 and not print_all:
                         result["y"][f"y[{i},{j},{r}]"] = get_variable_value(y[i, j, r], config.solver.solver)
                         try:
@@ -193,26 +218,41 @@ def post_process(model, status, inp, config, num_staff, num_drone_trip, N,
                             drone_graph.add_edge(i, j, label=r)
                         except Exception as e:
                             print("Loi khi ve lai do thi duong di cua drone: ", e)
+
         for k in range(num_staff):
             for r in range(num_drone_trip):
-                for j in N:
-                    for i in N:
+                for j in N2:
+                    for i in cC1:
+                        if i == j:
+                            continue
                         if get_variable_value(f[i, j, k, r], config.solver.solver) > 0 and not print_all:
                             result["f"][f"f[{i},{j},{k},{r}]"] = get_variable_value(f[i, j, k, r], config.solver.solver)
+
+        for k in range(num_staff):
+            for r in range(num_drone_trip):
+                for j in cC1:
+                    for i in cC:
                         if get_variable_value(g[i, j, k, r], config.solver.solver) > 0 and not print_all:
                             result["g"][f"g[{i},{j},{k},{r}]"] = get_variable_value(g[i, j, k, r], config.solver.solver)
 
         for r in range(num_drone_trip):
-            for i in N:
+            for i in cC12:
                 if get_variable_value(v[i, r], config.solver.solver) > 0 and not print_all:
                     result["v"][f"v[{i}, {r}]"] = get_variable_value(v[i, r], config.solver.solver)
+
+        for r in range(num_drone_trip):
+            for i in cC:
                 if get_variable_value(C[i, r], config.solver.solver) > 0 and not print_all:
                     result["C"][f"C[{i}, {r}]"] = get_variable_value(C[i, r], config.solver.solver)
 
+        if config.ver == 1:
+            for k in range(num_staff):
+                for i in N:
+                    if get_variable_value(s[i, k], config.solver.solver) > 0 and not print_all:
+                        result["s"][f"s[{i}, {k}]"] = get_variable_value(s[i, k], config.solver.solver)
+
         for k in range(num_staff):
-            for i in N:
-                if get_variable_value(s[i, k], config.solver.solver) > 0 and not print_all:
-                    result["s"][f"s[{i}, {k}]"] = get_variable_value(s[i, k], config.solver.solver)
+            for i in cC:
                 if get_variable_value(D[i, k], config.solver.solver) > 0 and not print_all:
                     result["D"][f"D[{i}, {k}]"] = get_variable_value(D[i, k], config.solver.solver)
 
@@ -233,7 +273,7 @@ def post_process(model, status, inp, config, num_staff, num_drone_trip, N,
                 result["B"][f"B[{k}]"] = get_variable_value(B[k], config.solver.solver)
             if get_variable_value(B_a[k], config.solver.solver) > 0 and not print_all:
                 result["B_a"][f"B_a[{k}]"] = get_variable_value(B_a[k], config.solver.solver)
-            if get_variable_value(u[k], config.solver.solver) > 0 and not print_all:
+            if config.ver == 1 and get_variable_value(u[k], config.solver.solver) > 0 and not print_all:
                 result["u"][f"u[{k}]"] = get_variable_value(u[k], config.solver.solver)
 
         result["Optimal"] = get_obj_value(model, config.solver.solver)

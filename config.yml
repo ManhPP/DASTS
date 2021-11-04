@@ -1,3 +1,5 @@
+ver: 2
+
 params:
     L: 30
     L_a: 480
@@ -12,7 +14,7 @@ data_path: data/d1/6.5.1.txt
 result_folder: result
 
 solver:
-    solver: CPLEX #CBC, SCIP, GUROBI, CPLEX
+    solver: GUROBI #CBC, SCIP, GUROBI, CPLEX
     num_worker: -1
     time_limit: 180
     model_params:
@@ -23,5 +25,5 @@ solver:
 tech2color: {-1: "blue", 0: "red", 1: "green", 2: "silver", 3: "yellow", 4: "orange", 5: "violet", 6: "gray"}
 
 #use for test
-staff_trip: [[0,3,4,6,5,2,1,7]]
-drone_trip: [[3],[4],[6],[5],[1]]
+staff_trip: [[0,2,5,1,7],[0,3,6,4,7]]
+drone_trip: []
