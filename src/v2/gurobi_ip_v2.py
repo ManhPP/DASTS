@@ -215,10 +215,10 @@ def solve_by_gurobi_v2(config, inp):
     tmp_wait_tech_drone = {}
     for i in cC1:
         # 18
-        tmp_wait_tech_drone[i] = model.addVar(vtype=GRB.BINARY, name=f"tmp_wait_tech_drone[{i}]")
-        model.addGenConstrOr(tmp_wait_tech_drone[i], [f[i, j, k, r] for k in range(num_staff)
-                                                      for r in range(num_drone_trip)
-                                                      for j in N2 if i != j], f"tmpWaitTechDrone_node{i}")
+        tmp_wait_tech_drone[i] = model.addVar(vtype=GRB.INTEGER, name=f"tmp_wait_tech_drone[{i}]")
+        model.addConstr(tmp_wait_tech_drone[i] == gp.quicksum(f[i, j, k, r] for k in range(num_staff)
+                                                              for r in range(num_drone_trip)
+                                                              for j in N2 if i != j), f"tmpWaitTechDrone_node{i}")
         model.addConstr((tmp_wait_tech_drone[i] == 1) >> (t_a[i] == t[i]), name=f"waitTechDrone_node{i}")
 
     tmp_time_at_cus_tech1 = {}
@@ -273,7 +273,7 @@ def solve_by_gurobi_v2(config, inp):
 
     for j in cC1:
         # 23
-        model.addConstr((y[0, j, 0] == 1) >> (t_a[j] >= tau_a[0, j]), name=f"cusDrone_node{j}")
+        model.addConstr((y[0, j, 0] == 1) >> (t_a[j] >= tau_a[0, j]), name=f"cusDrone_node{j}_trip0")
 
     for j in cC1:
         for r in range(1, num_drone_trip):
@@ -323,20 +323,26 @@ def solve_by_gurobi_v2(config, inp):
         for z in cC:
             tmp_get_sample_node4[z, k] = model.addVar(vtype=GRB.INTEGER,
                                                       name=f"tmp_get_sample_node4[{z},{k}]")
-            model.addConstr(tmp_get_sample_node4[z, k] == gp.quicksum(x[z, j, k] for j in N2 if z != j), name=f"tmpGetSampleNode4_node{z}_tech{k}")
+            model.addConstr(tmp_get_sample_node4[z, k] == gp.quicksum(x[z, j, k] for j in N2 if z != j),
+                            name=f"tmpGetSampleNode4_node{z}_tech{k}")
             for r in range(num_drone_trip):
                 for i in cC1:
-                    model.addConstr((tmp_get_sample_node4[z, k] == 1) >> (gp.quicksum(f[i, j, k, r] for j in N2 if i != j)
-                                    >= g[z, i, k, r]),
-                                    name=f"getSampleNode4_node{i}_ndoe{z}_tech{k}_trip{r}")
+                    model.addConstr(
+                        (tmp_get_sample_node4[z, k] == 1) >> (gp.quicksum(f[i, j, k, r] for j in N2 if i != j)
+                                                              >= g[z, i, k, r]),
+                        name=f"getSampleNode4_node{i}_node{z}_tech{k}_trip{r}")
 
     # 31
     tmp_sample_brought_by_drone1 = {}
     for i in cC:
         for r in range(num_drone_trip):
-            tmp_sample_brought_by_drone1[i, r] = model.addVar(vtype=GRB.INTEGER, name=f"tmp_sample_brought_by_drone1[{i},{r}]")
-            model.addConstr(tmp_sample_brought_by_drone1[i, r] == gp.quicksum(g[i, j, k, r] for j in cC1 for k in range(num_staff)), name=f"tmpSampleBroughtByDrone1_node{i}_trip{r}")
-            model.addConstr((tmp_sample_brought_by_drone1[i, r] == 0) >> (C[i, r] == 0), name=f"sampleBroughtByDrone1_node{i}_trip{r}")
+            tmp_sample_brought_by_drone1[i, r] = model.addVar(vtype=GRB.INTEGER,
+                                                              name=f"tmp_sample_brought_by_drone1[{i},{r}]")
+            model.addConstr(
+                tmp_sample_brought_by_drone1[i, r] == gp.quicksum(g[i, j, k, r] for j in cC1 for k in range(num_staff)),
+                name=f"tmpSampleBroughtByDrone1_node{i}_trip{r}")
+            model.addConstr((tmp_sample_brought_by_drone1[i, r] == 0) >> (C[i, r] == 0),
+                            name=f"sampleBroughtByDrone1_node{i}_trip{r}")
 
     # 32
     tmp_sample_brought_by_drone2 = {}
@@ -347,16 +353,21 @@ def solve_by_gurobi_v2(config, inp):
             model.addConstr(tmp_sample_brought_by_drone2[i, r] == gp.quicksum(
                 g[i, j, k, r] for j in cC1 for k in range(num_staff)), name=f"tmpSampleBroughtByDrone2_node{i}_trip{r}")
 
-            model.addConstr((tmp_sample_brought_by_drone2[i, r] == 1) >> (C[i, r] == A[r] - T[i]), name=f"sampleBroughtByDrone2_node{i}_trip{r}")
+            model.addConstr((tmp_sample_brought_by_drone2[i, r] == 1) >> (C[i, r] == A[r] - T[i]),
+                            name=f"sampleBroughtByDrone2_node{i}_trip{r}")
 
     # 33
     tmp_sample_brought_by_technican1 = {}
     for i in cC:
         for k in range(num_staff):
-            tmp_sample_brought_by_technican1[i, k] = model.addVar(vtype=GRB.INTEGER, name=f"tmp_sample_brought_by_technican1[{i},{k}]")
-            model.addConstr(tmp_sample_brought_by_technican1[i, k] == gp.quicksum(g[i, j, k, r] for j in cC for r in range(num_drone_trip)), name=f"tmpSampleBroughtByTechnican1_node{i}_tech{k}")
+            tmp_sample_brought_by_technican1[i, k] = model.addVar(vtype=GRB.INTEGER,
+                                                                  name=f"tmp_sample_brought_by_technican1[{i},{k}]")
+            model.addConstr(tmp_sample_brought_by_technican1[i, k] == gp.quicksum(
+                g[i, j, k, r] for j in cC1 for r in range(num_drone_trip)),
+                            name=f"tmpSampleBroughtByTechnican1_node{i}_tech{k}")
 
-            model.addConstr((tmp_sample_brought_by_technican1[i, k] == 1) >> (D[i, k] == 0), name=f"sampleBroughtByTechnican1_node{i}tech{k}")
+            model.addConstr((tmp_sample_brought_by_technican1[i, k] == 1) >> (D[i, k] == 0),
+                            name=f"sampleBroughtByTechnican1_node{i}tech{k}")
 
     # 34
     tmp_sample_brought_by_technican2 = {}
@@ -364,15 +375,19 @@ def solve_by_gurobi_v2(config, inp):
         for k in range(num_staff):
             tmp_sample_brought_by_technican2[i, k] = model.addVar(vtype=GRB.INTEGER,
                                                                   name=f"tmp_sample_brought_by_technican2[{i},{k}]")
-            model.addConstr(tmp_sample_brought_by_technican2[i, k] == gp.quicksum(x[i, j, k] for j in N2 if j != i) - gp.quicksum(
-                    g[i, j, k, r] for j in cC1 for r in range(num_drone_trip)), name=f"tmpSampleBroughtByTechnican2_node{i}_tech{k}")
-            model.addConstr((tmp_sample_brought_by_technican2[i, k] == 1) >> (D[i, k] >= B[k] - T[i]), name=f"sampleBroughtByTechnican2_node{i}tech{k}")
+            model.addConstr(
+                tmp_sample_brought_by_technican2[i, k] == gp.quicksum(x[i, j, k] for j in N2 if j != i) - gp.quicksum(
+                    g[i, j, k, r] for j in cC1 for r in range(num_drone_trip)),
+                name=f"tmpSampleBroughtByTechnican2_node{i}_tech{k}")
+            model.addConstr((tmp_sample_brought_by_technican2[i, k] == 1) >> (D[i, k] == B[k] - T[i]),
+                            name=f"sampleBroughtByTechnican2_node{i}tech{k}")
 
     # 35
     tmp_sample_tech_temp = {}
     for k in range(num_staff):
         tmp_sample_tech_temp[k] = model.addVar(vtype=GRB.INTEGER, name=f"tmp_sample_tech_temp[{k}]")
-        model.addGenConstrOr(tmp_sample_tech_temp[k], [tmp_sample_brought_by_technican2[i, k] for i in cC], name=f"tmpSampleTechTemp1_tech{k}")
+        model.addGenConstrOr(tmp_sample_tech_temp[k], [tmp_sample_brought_by_technican2[i, k] for i in cC],
+                             name=f"tmpSampleTechTemp1_tech{k}")
 
         model.addConstr((tmp_sample_tech_temp[k] == 1) >> (B_a[k] == B[k]), name=f"sampleTechTemp1_tech{k}")
 
@@ -384,8 +399,10 @@ def solve_by_gurobi_v2(config, inp):
     for i in cC:
         # 37
         tmp_max_time[i] = model.addVar(vtype=GRB.INTEGER, name=f"tmp_max_time[{i}]")
-        model.addConstr(tmp_max_time[i] <= gp.quicksum(y[i, num_cus + 1, r] for r in range(num_drone_trip)), name=f"tmpMaxTime1_node{i}")
-        model.addConstr(tmp_max_time[i] >= gp.quicksum(y[i, num_cus + 1, r] for r in range(num_drone_trip)), name=f"tmpMaxTime2_node{i}")
+        model.addConstr(tmp_max_time[i] <= gp.quicksum(y[i, num_cus + 1, r] for r in range(num_drone_trip)),
+                        name=f"tmpMaxTime1_node{i}")
+        model.addConstr(tmp_max_time[i] >= gp.quicksum(y[i, num_cus + 1, r] for r in range(num_drone_trip)),
+                        name=f"tmpMaxTime2_node{i}")
         model.addConstr((tmp_max_time[i] == 1) >> (t_a[i] + tau_a[i, num_cus + 1] <= L_a), name=f"maxTime_node{i}")
 
     model.optimize()
