@@ -64,7 +64,6 @@ def solve_by_gurobi_v2(config, inp):
     B = {}
     C = {}
     D = {}
-    B_a = {}
     u = {}
 
     for k in range(num_staff):
@@ -114,7 +113,6 @@ def solve_by_gurobi_v2(config, inp):
 
     for k in range(num_staff):
         B[k] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"B[{k}]")
-        B_a[k] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"B_a[{k}]")
 
     # Obj
     model.setObjective(gp.quicksum(C[i, r] for i in cC for r in range(num_drone_trip)) + gp.quicksum(
@@ -366,29 +364,6 @@ def solve_by_gurobi_v2(config, inp):
             model.addConstr((tmp_sample_brought_by_technican2[i, k] == 1) >> (D[i, k] == B[k] - T[i]),
                             name=f"sampleBroughtByTechnican2_node{i}tech{k}")
 
-    # 35
-    tmp_sample_tech_temp = {}
-    for k in range(num_staff):
-        tmp_sample_tech_temp[k] = model.addVar(vtype=GRB.INTEGER, name=f"tmp_sample_tech_temp[{k}]")
-        model.addGenConstrOr(tmp_sample_tech_temp[k], [tmp_sample_brought_by_technican2[i, k] for i in cC],
-                             name=f"tmpSampleTechTemp1_tech{k}")
-
-        model.addConstr((tmp_sample_tech_temp[k] == 1) >> (B_a[k] == B[k]), name=f"sampleTechTemp1_tech{k}")
-
-    for k in range(num_staff):
-        # 36
-        model.addConstr(B_a[k] <= L_a, name=f"maxTime_tech{k}")
-
-    tmp_max_time = {}
-    for i in cC:
-        # 37
-        tmp_max_time[i] = model.addVar(vtype=GRB.INTEGER, name=f"tmp_max_time[{i}]")
-        model.addConstr(tmp_max_time[i] <= gp.quicksum(y[i, num_cus + 1, r] for r in range(num_drone_trip)),
-                        name=f"tmpMaxTime1_node{i}")
-        model.addConstr(tmp_max_time[i] >= gp.quicksum(y[i, num_cus + 1, r] for r in range(num_drone_trip)),
-                        name=f"tmpMaxTime2_node{i}")
-        model.addConstr((tmp_max_time[i] == 1) >> (t_a[i] + tau_a[i, num_cus + 1] <= L_a), name=f"maxTime_node{i}")
-
     model.optimize()
     model.write("model.lp")
 
@@ -406,4 +381,4 @@ def solve_by_gurobi_v2(config, inp):
     print('Obj: %g' % model.objVal)
 
     post_process(model, model.status, inp, config,
-                 x, y, f, g, v, s, t, t_a, T, A, B, C, D, B_a, u)
+                 x, y, f, g, v, s, t, t_a, T, A, B, C, D, B, u)
