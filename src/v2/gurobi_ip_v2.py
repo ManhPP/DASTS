@@ -389,8 +389,9 @@ def solve_by_gurobi_v2(config, inp):
                         name=f"tmpMaxTime2_node{i}")
         model.addConstr((tmp_max_time[i] == 1) >> (t_a[i] + tau_a[i, num_cus + 1] <= L_a), name=f"maxTime_node{i}")
 
+    model.write(config.result_folder + "/" + "model.lp")
+    model.write(config.result_folder + "/" + "model.mps")
     model.optimize()
-    model.write("model.lp")
 
     if model.status == GRB.OPTIMAL:
         print('Optimal objective: %g' % model.objVal)
