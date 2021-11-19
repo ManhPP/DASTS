@@ -214,14 +214,14 @@ def solve_by_gurobi_v2(config, inp):
                     if i != j:
                         model.addConstr(f[i, j, k, r] <= x[i, j, k], name=f"syn_node{i}_node{j}_tech{k}_trip{r}")
 
-    tmp_wait_tech_drone = {}
+    # tmp_wait_tech_drone = {}
     for i in cC1:
         # 19
-        tmp_wait_tech_drone[i] = model.addVar(vtype=GRB.INTEGER, name=f"tmp_wait_tech_drone[{i}]")
-        model.addConstr(tmp_wait_tech_drone[i] == gp.quicksum(f[i, j, k, r] for k in range(num_staff)
-                                                              for r in range(num_drone_trip)
-                                                              for j in N2 if i != j), f"tmpWaitTechDrone_node{i}")
-        model.addConstr((tmp_wait_tech_drone[i] == 1) >> (t_a[i] == t[i]), name=f"waitTechDrone_node{i}")
+        # tmp_wait_tech_drone[i] = model.addVar(vtype=GRB.INTEGER, name=f"tmp_wait_tech_drone[{i}]")
+        # model.addConstr(tmp_wait_tech_drone[i] == gp.quicksum(f[i, j, k, r] for k in range(num_staff)
+        #                                                       for r in range(num_drone_trip)
+        #                                                       for j in N2 if i != j), f"tmpWaitTechDrone_node{i}")
+        model.addConstr(t_a[i] >= T[i], name=f"waitTechDrone_node{i}")
 
     tmp_time_at_cus_tech1 = {}
     for i in cC:
