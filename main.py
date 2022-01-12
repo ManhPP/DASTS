@@ -9,6 +9,7 @@ from src.v1.gurobi_ip_v1 import solve_by_gurobi
 from src.v1.cplex_ip import solve_by_cplex
 from src.util import *
 from src.v2.gurobi_ip_v2 import solve_by_gurobi_v2
+from src.v4.gurobi_ip_v4 import solve_by_gurobi_v4
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DASTS')
@@ -31,6 +32,8 @@ if __name__ == '__main__':
 
                 if config.ver == 2:
                     solve_by_gurobi_v2(config, inp)
+                if config.ver == 4:
+                    solve_by_gurobi_v4(config, inp)
                 else:
                     if config.solver.solver == "GUROBI":
                         solve_by_gurobi(config, inp)
