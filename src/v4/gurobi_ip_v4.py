@@ -1,7 +1,11 @@
+import json
+import os
+
 import gurobipy as gp
 from gurobipy import GRB
 
-from src.util import make_dirs_if_not_present
+from src.util import make_dirs_if_not_present, get_variable_value, get_obj_value, get_status, get_num_var, \
+    get_num_constraint, get_runtime
 
 
 def solve_by_gurobi_v4(config, inp):
@@ -408,3 +412,91 @@ def solve_by_gurobi_v4(config, inp):
         print('===\nOptimization ended with status %d' % model.status)
 
     print('Obj: %g' % model.objVal)
+
+    status = model.status
+    result = {"x": {}, "a": {}, "d": {}, "T": {}, "b": {}, "m": {}, "y": {}, "y_a": {}, "z": {}, "e": {}, "e_a": {}}
+
+    result.update(dict(config.params))
+    result.update(dict(config.solver))
+
+    result["model_params"] = dict(config.solver.model_params.gurobi)
+
+    if not (status == GRB.OPTIMAL or status == GRB.TIME_LIMIT):
+        result = {"status": "INFEASIBLE" if status == GRB.INFEASIBLE else status}
+    else:
+        for i in N1:
+            for j in N2:
+                for k in range(num_staff):
+                    for t in range(num_node_level):
+                        if i != j and get_variable_value(x[i, j, k, t], config.solver.solver) > 0:
+                            result["x"][f"x[{i},{j},{k},{t}]"] = get_variable_value(x[i, j, k, t], config.solver.solver)
+
+        for i in cC11:
+            for j in cC12:
+                for r in range(num_drone_trip):
+                    if i != j and get_variable_value(x[i, j, r], config.solver.solver) > 0:
+                        result["x"][f"x[{i},{j},{r}]"] = get_variable_value(x[i, j, r], config.solver.solver)
+
+        for t in range(num_node_level):
+            for k in range(num_staff):
+                result["a"][f"a[{t},{k}]"] = get_variable_value(a[t, k], config.solver.solver)
+                result["d"][f"d[{t},{k}]"] = get_variable_value(d[t, k], config.solver.solver)
+
+        for k in range(num_staff):
+            result["T"][f"T[{k}]"] = get_variable_value(T[k], config.solver.solver)
+
+        for i in cC13:
+            for r in range(num_drone_trip):
+                result["b"][f"b[{i},{r}]"] = get_variable_value(b[i, r], config.solver.solver)
+
+        for k in range(num_staff):
+            for r in range(num_drone_trip):
+                if get_variable_value(m[k, r], config.solver.solver) > 0:
+                    result["m"][f"m[{k},{r}]"] = get_variable_value(m[k, r], config.solver.solver)
+                for i in cC1:
+                    if get_variable_value(m[i, k, r], config.solver.solver) > 0:
+                        result["m"][f"m[{i},{k},{r}]"] = get_variable_value(m[i, k, r], config.solver.solver)
+                    for t in range(num_node_level):
+                        if get_variable_value(m[i, t, k, r], config.solver.solver) > 0:
+                            result["m"][f"m[{i},{t},{k},{r}]"] = get_variable_value(m[i, t, k, r], config.solver.solver)
+
+        for k in range(num_staff):
+            for i in cC:
+                if get_variable_value(y[i, k], config.solver.solver) > 0:
+                    result["y"][f"y[{i},{k}]"] = get_variable_value(y[i, k], config.solver.solver)
+
+        for i in cC1:
+            for r in range(num_drone_trip):
+                if get_variable_value(y_a[i, r], config.solver.solver) > 0:
+                    result["y_a"][f"y_a[{i},{r}]"] = get_variable_value(y_a[i, r], config.solver.solver)
+
+        for k in range(num_staff):
+            for r in range(num_drone_trip):
+                for t in range(num_node_level):
+                    for i in cC:
+                        if get_variable_value(y[i, t, k, r], config.solver.solver) > 0:
+                            result["y"][f"y[{i},{t},{k},{r}]"] = get_variable_value(y[i, t, k, r], config.solver.solver)
+                    for i in cC1:
+                        if get_variable_value(z[i, t, k, r], config.solver.solver) > 0:
+                            result["z"][f"z[{i},{t},{k},{r}]"] = get_variable_value(z[i, t, k, r], config.solver.solver)
+
+        for i in cC:
+            if get_variable_value(e[i], config.solver.solver) > 0:
+                result["e"][f"e[{i}]"] = get_variable_value(e[i], config.solver.solver)
+            for k in range(num_staff):
+                if get_variable_value(e[i, k], config.solver.solver) > 0:
+                    result["e"][f"e[{i},{k}]"] = get_variable_value(e[i, k], config.solver.solver)
+
+        for i in cC1:
+            for r in range(num_drone_trip):
+                if get_variable_value(e_a[i, r], config.solver.solver) > 0:
+                    result["e_a"][f"e_a[{i},{r}]"] = get_variable_value(e_a[i, r], config.solver.solver)
+
+        result["Optimal"] = get_obj_value(model, config.solver.solver)
+        result["Time"] = get_runtime(model, config.solver.solver)
+        result["num_constraint"] = get_num_constraint(model, config.solver.solver)
+        result['Number of variables'] = get_num_var(model, config.solver.solver)
+        result["status"] = get_status(status, config.solver.solver)
+
+    with open(os.path.join(config.result_folder, 'result_' + inp['data_set'] + '.json'), 'w') as json_file:
+        json.dump(result, json_file, indent=2)
