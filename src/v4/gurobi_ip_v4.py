@@ -77,8 +77,9 @@ def solve_by_gurobi_v4(config, inp):
     a = {}
     d = {}
 
-    for t in range(num_node_level):
-        for k in range(num_staff):
+    for k in range(num_staff):
+        a[num_node_level, k] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"a[{num_node_level},{k}]")
+        for t in range(num_node_level):
             a[t, k] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"a[{t},{k}]")
             d[t, k] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=L_a, name=f"d[{t},{k}]")
 
@@ -210,7 +211,7 @@ def solve_by_gurobi_v4(config, inp):
     tmp14 = {}
 
     for k in range(num_staff):
-        for t in range(num_node_level - 1):
+        for t in range(num_node_level):
             tmp14[k, t] = model.addVar(vtype=GRB.BINARY, name=f"tmp14[{k},{t}]")
             model.addConstr(tmp14[k, t] == gp.quicksum(x[i, j, k, t] for i in N1 for j in N2 if i != j),
                             name=f"#tmp-14_{k}-{t}")
@@ -219,7 +220,7 @@ def solve_by_gurobi_v4(config, inp):
 
     # 15
     for k in range(num_staff):
-        for t in range(num_node_level - 1):
+        for t in range(num_node_level):
             model.addConstr(
                 (tmp14[k, t] == 1) >> (a[t + 1, k] == d[t, k] + gp.quicksum(
                     x[i, j, k, t] * tau[i, j] for i in N1 for j in N2 if i != j)), name=f"#15_{k}-{t}")
@@ -228,7 +229,7 @@ def solve_by_gurobi_v4(config, inp):
     tmp16 = {}
 
     for k in range(num_staff):
-        for t in range(num_node_level - 1):
+        for t in range(num_node_level):
             tmp16[k, t] = model.addVar(vtype=GRB.BINARY, name=f"tmp16[{k},{t}]")
             model.addConstr(tmp16[k, t] == gp.quicksum(x[i, num_cus + 1, k, t] for i in N1), name=f"#tmp-16_{k}-{t}")
 
@@ -276,13 +277,13 @@ def solve_by_gurobi_v4(config, inp):
     for i in cC1:
         for k in range(num_staff):
             for r in range(num_drone_trip):
-                model.addConstr(m[i, k, r] <= gp.quicksum(m[i, t, k, r] for t in range(num_node_level)),
+                model.addConstr(m[i, k, r] == gp.quicksum(m[i, t, k, r] for t in range(num_node_level)),
                                 name=f"#22_{i}-{k}-{r}")
 
     # 23
     for k in range(num_staff):
         for r in range(num_drone_trip):
-            model.addConstr(m[k, r] <= gp.quicksum(m[i, k, r] for i in cC1), name=f"#23_{k}-{r}")
+            model.addConstr(m[k, r] == gp.quicksum(m[i, k, r] for i in cC1), name=f"#23_{k}-{r}")
 
     # 24
     for r in range(num_drone_trip - 1):
