@@ -1,4 +1,4 @@
-ver: 4
+ver: 1
 
 params:
     L: 30
@@ -9,7 +9,7 @@ params:
     cus_per_staff: -1
     distance_coeff: -1
 
-data_path: data/d1/6.10.1.txt
+data_path: data/d1/6.*.txt
 
 result_folder: result
 
@@ -17,14 +17,14 @@ solver:
     solver: GUROBI #CBC, SCIP, GUROBI, CPLEX
     solver_log: true
     num_worker: -1
-    time_limit: 360
+    time_limit: 36000
     model_params:
-        gurobi: {"MIPFocus": 3,"Threads": 2} # tham so dac biet cho gurobi, format name:value
+        gurobi: {"MIPFocus": 2,"Threads": 2} # tham so dac biet cho gurobi, format name:value
         cplex: {} # tham so dac biet cho cplex, format id:value, xem id model.parameters
 
 
 tech2color: {-1: "blue", 0: "red", 1: "green", 2: "silver", 3: "yellow", 4: "orange", 5: "violet", 6: "gray"}
 
 #use for test
-staff_trip: [[0,6,4,3,1,2,5,7]]
-drone_trip: [[6],[4],[3],[1],[2],[5]] #30.127761627817705
+staff_trip: [[0,3,4,6,5,2,1,7]]
+drone_trip: [[3],[4],[6],[5],[1]]
